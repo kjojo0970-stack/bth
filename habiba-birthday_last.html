@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HABIBA BIRTHDAY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,500&family=Cormorant+Garamond:ital@1&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#f3e9dc;
+    --ink-dim:#c9bcd6;
+    --night-1:#120a24;
+    --night-2:#241338;
+    --night-3:#2f1a45;
+    --gold:#d8b25c;
+    --gold-soft:#e9cf8f;
+    --card:rgba(28,16,46,0.55);
+    --border:rgba(216,178,92,0.28);
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:var(--night-1);
+    color:var(--ink);
+    font-family:'Jost', sans-serif;
+    overflow:hidden;
+  }
+
+  #sky{
+    position:fixed; inset:0;
+    background:
+      radial-gradient(ellipse at 20% 15%, rgba(217,150,150,0.10), transparent 55%),
+      radial-gradient(ellipse at 80% 85%, rgba(150,120,217,0.14), transparent 55%),
+      linear-gradient(160deg, var(--night-1) 0%, var(--night-2) 55%, var(--night-3) 100%);
+    z-index:0;
+  }
+
+  canvas#stars{ position:fixed; inset:0; z-index:1; pointer-events:none; }
+
+  .ornament{
+    position:fixed;
+    width:min(70vw, 560px); height:min(70vw, 560px);
+    right:-14%; top:-16%;
+    opacity:0.07;
+    z-index:1;
+    animation:spin 150s linear infinite;
+    pointer-events:none;
+  }
+  .ornament svg{ width:100%; height:100%; }
+  @keyframes spin{ to{ transform:rotate(360deg);} }
+
+  main{
+    position:relative; z-index:2;
+    height:100dvh; width:100%;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  .screen{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:8vh 6vw 14vh;
+    text-align:center;
+    opacity:0; transform:translateY(14px) scale(0.985);
+    pointer-events:none;
+    transition:opacity 0.7s ease, transform 0.7s ease;
+  }
+  .screen.active{ opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+
+  .eyebrow{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    letter-spacing:0.04em;
+    color:var(--gold-soft);
+    font-size:clamp(0.85rem, 1.2vw, 1.05rem);
+    margin-bottom:0.6rem;
+  }
+
+  h1, h2{
+    font-family:'Playfair Display', serif;
+    font-weight:700;
+    color:var(--ink);
+    margin:0 0 0.5rem;
+    line-height:1.25;
+    text-shadow:0 0 26px rgba(216,178,92,0.16);
+  }
+
+  .screen-title{ font-size:clamp(2rem, 5.5vw, 3.4rem); }
+  .screen-sub{
+    font-size:clamp(1rem, 2vw, 1.2rem);
+    color:var(--ink-dim);
+    max-width:36ch;
+    line-height:1.85;
+    font-weight:300;
+  }
+
+  .divider{
+    width:64px; height:1px;
+    background:linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin:1.4rem auto;
+  }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:clamp(1.4rem, 4vw, 2.6rem) clamp(1.2rem, 4vw, 2.8rem);
+    backdrop-filter:blur(6px);
+    max-width:560px;
+    width:100%;
+  }
+
+  .letter-body{
+    font-size:clamp(0.95rem, 1.7vw, 1.12rem);
+    line-height:2.05;
+    color:var(--ink);
+    font-weight:300;
+    text-align:left;
+  }
+  .letter-body p{ margin:0 0 1.1em; }
+  .letter-body p:last-child{ margin-bottom:0; }
+  .signature{
+    font-family:'Playfair Display', serif;
+    font-style:italic;
+    color:var(--gold-soft);
+    font-size:1.1rem;
+    margin-top:1.2rem;
+  }
+
+  /* glowing continue control — reused across every screen */
+  .continue{
+    margin-top:clamp(2rem, 5vh, 3rem);
+    display:inline-flex; align-items:center; gap:0.6rem;
+    background:none; border:1px solid var(--border);
+    color:var(--gold-soft);
+    font-family:'Jost', sans-serif;
+    font-size:0.85rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:0.75rem 1.6rem;
+    border-radius:999px;
+    cursor:pointer;
+    position:relative;
+    overflow:hidden;
+    z-index:0;
+    transition:box-shadow 0.35s ease, border-color 0.35s ease, color 0.2s ease 0.15s;
+    box-shadow:0 0 0px rgba(233,207,143,0);
+  }
+  .continue .fill{
+    position:absolute; inset:0;
+    background:linear-gradient(120deg, var(--gold-soft), var(--gold));
+    border-radius:inherit;
+    transform:scaleX(0);
+    transform-origin:left center;
+    transition:transform 0.5s cubic-bezier(0.65,0,0.35,1);
+    z-index:-1;
+  }
+  .continue .arrow{ position:relative; transition:transform 0.35s ease; font-size:1rem; }
+  .continue span:not(.fill){ position:relative; }
+  .continue:hover, .continue:focus-visible{
+    border-color:var(--gold);
+    box-shadow:0 0 22px 2px rgba(233,207,143,0.45), 0 0 46px 10px rgba(216,178,92,0.18);
+  }
+  .continue:hover .arrow, .continue:focus-visible .arrow{ transform:translateX(6px); }
+  .continue:focus-visible{ outline:none; }
+  .continue.filling{
+    color:var(--night-1);
+    border-color:var(--gold);
+    box-shadow:0 0 26px 4px rgba(233,207,143,0.6), 0 0 50px 12px rgba(216,178,92,0.25);
+  }
+  .continue.filling .fill{ transform:scaleX(1); }
+  .continue.filling .arrow{ transform:translateX(6px); }
+
+  @media (prefers-reduced-motion: reduce){
+    .continue .fill{ transition:none; }
+  }
+
+  /* screen 1: countdown */
+  .clock{
+    display:flex; gap:clamp(0.6rem, 2vw, 1.4rem);
+    margin:1.6rem 0 1rem;
+  }
+  .clock .unit{
+    display:flex; flex-direction:column; align-items:center;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:0.7rem clamp(0.6rem, 2vw, 1.1rem);
+    min-width:60px;
+  }
+  .clock .num{
+    font-family:'Playfair Display', serif;
+    font-size:clamp(1.4rem, 3.5vw, 2rem);
+    color:var(--gold-soft);
+  }
+  .clock .label{
+    font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--ink-dim); margin-top:0.3rem;
+  }
+  .arrived{
+    font-family:'Cormorant Garamond', serif; font-style:italic;
+    color:var(--ink-dim); font-size:1rem; margin-top:0.2rem;
+  }
+
+  /* screen 2: gift box */
+  .gift-wrap{
+    position:relative;
+    width:180px; height:180px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    margin:1.2rem 0;
+    background:none; border:none;
+  }
+  .gift-glow{
+    position:absolute; inset:-40px;
+    background:radial-gradient(circle, rgba(233,207,143,0.30), transparent 65%);
+    border-radius:50%;
+    animation:pulse 2.6s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{ opacity:0.55; transform:scale(0.94); }
+    50%{ opacity:1; transform:scale(1.05); }
+  }
+  .gift-wrap svg{ position:relative; width:110px; height:110px; transition:transform 0.3s ease; }
+  .gift-wrap:hover svg{ transform:translateY(-4px) scale(1.04); }
+  .gift-wrap.opened svg{ transform:scale(1.3); opacity:0; transition:transform 0.6s ease, opacity 0.6s ease; }
+  .gift-hint{ color:var(--ink-dim); font-size:0.85rem; margin-top:0.4rem; }
+
+  /* screen 3: hero with side photos */
+  .hero-frame{
+    display:flex; align-items:center; justify-content:center;
+    gap:clamp(0.8rem, 4vw, 2.6rem);
+  }
+  .side-photos{ display:flex; flex-direction:column; gap:0.9rem; }
+  .side-photos.right .polaroid:nth-child(1){ --r:6deg; }
+  .side-photos.right .polaroid:nth-child(2){ --r:-4deg; }
+  .side-photos.left .polaroid:nth-child(1){ --r:-5deg; }
+  .side-photos.left .polaroid:nth-child(2){ --r:4deg; }
+
+  .polaroid{
+    background:#efe6da;
+    padding:6px 6px 14px;
+    border-radius:2px;
+    box-shadow:0 10px 22px -8px rgba(0,0,0,0.55);
+    transform:rotate(var(--r,0deg));
+    transition:transform 0.3s ease;
+    width:clamp(58px, 9vw, 92px);
+  }
+  .polaroid:hover{ transform:rotate(0deg) scale(1.06); }
+  .polaroid .frame{
+    width:100%; aspect-ratio:1/1;
+    background:repeating-linear-gradient(135deg, #d9cdbb, #d9cdbb 8px, #cfc2ae 8px, #cfc2ae 16px);
+    display:flex; align-items:center; justify-content:center;
+    color:#8a7c66; font-size:1.1rem;
+  }
+  .hero-center{ max-width:280px; }
+
+  /* screen 5: gallery */
+  .gallery{
+    display:grid;
+    grid-template-columns:repeat(3, minmax(84px, 120px));
+    gap:1.1rem 1.4rem;
+    margin:0 auto;
+    max-width:480px;
+  }
+  .gallery .polaroid{ width:auto; padding:8px 8px 20px; }
+  .gallery .polaroid:nth-child(1){ --r:-6deg; }
+  .gallery .polaroid:nth-child(2){ --r:4deg; }
+  .gallery .polaroid:nth-child(3){ --r:-3deg; }
+  .gallery .polaroid:nth-child(4){ --r:5deg; }
+  .gallery .polaroid:nth-child(5){ --r:-4deg; }
+  .gallery .polaroid:nth-child(6){ --r:3deg; }
+
+  /* screen 6: video */
+  .video-frame{
+    width:100%; max-width:380px;
+    aspect-ratio:9/13;
+    margin:0 auto;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:linear-gradient(160deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    display:flex; align-items:center; justify-content:center;
+    position:relative; overflow:hidden;
+  }
+  .video-frame .play{
+    width:56px; height:56px; border-radius:50%;
+    background:rgba(243,233,220,0.14);
+    border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--gold-soft); font-size:1.2rem;
+  }
+  .video-hint{
+    position:absolute; bottom:14px; right:0; left:0;
+    text-align:center; font-size:0.72rem; color:var(--ink-dim);
+  }
+
+  .replay{
+    margin-top:clamp(2rem, 5vh, 3rem);
+    background:none; border:1px solid var(--border);
+    color:var(--ink-dim);
+    font-family:'Jost', sans-serif; font-size:0.8rem;
+    letter-spacing:0.05em; text-transform:uppercase;
+    padding:0.7rem 1.5rem; border-radius:999px; cursor:pointer;
+    transition:border-color 0.3s ease, color 0.3s ease;
+  }
+  .replay:hover{ border-color:var(--gold); color:var(--gold-soft); }
+
+  .progress{
+    position:fixed; z-index:3; top:50%; transform:translateY(-50%); left:22px;
+    display:flex; flex-direction:column; gap:11px;
+  }
+  .progress span{
+    width:6px; height:6px; border-radius:50%;
+    background:rgba(243,233,220,0.25);
+    transition:background 0.3s ease, transform 0.3s ease;
+  }
+  .progress span.active{ background:var(--gold-soft); transform:scale(1.6); }
+
+  .arrows{ position:fixed; bottom:26px; left:0; right:0; z-index:3; display:flex; justify-content:center; gap:1.4rem; }
+  @media (max-width:480px){
+    .gallery{ grid-template-columns:repeat(3, minmax(70px, 96px)); gap:0.8rem; }
+    .hero-frame{ gap:0.6rem; }
+    .side-photos{ gap:0.5rem; }
+    .progress{ left:10px; }
+    .ornament{ opacity:0.05; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .ornament{ animation:none; }
+    .screen{ transition:opacity 0.2s linear; transform:none !important; }
+    .polaroid{ transition:none; }
+    .gift-glow{ animation:none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="sky"></div>
+<canvas id="stars"></canvas>
+<div class="ornament" aria-hidden="true">
+  <svg viewBox="0 0 200 200">
+    <g fill="none" stroke="#d8b25c" stroke-width="1">
+      <path d="M100 10 L124 76 L190 76 L136 116 L156 182 L100 142 L44 182 L64 116 L10 76 L76 76 Z"/>
+      <circle cx="100" cy="100" r="90" />
+    </g>
+  </svg>
+</div>
+
+<main>
+
+  <!-- 1. Countdown -->
+  <section class="screen active" data-index="0">
+    <p class="eyebrow">✦ Counting Down ✦</p>
+    <h1 class="screen-title">Her Special Day<br>Is Here</h1>
+    <div class="clock">
+      <div class="unit"><span class="num">00</span><span class="label">Days</span></div>
+      <div class="unit"><span class="num">00</span><span class="label">Hours</span></div>
+      <div class="unit"><span class="num">00</span><span class="label">Minutes</span></div>
+      <div class="unit"><span class="num">00</span><span class="label">Seconds</span></div>
+    </div>
+    <p class="arrived">Today is the day 🤍</p>
+    <button class="continue" data-next>Open Your Gift <span class="arrow">→</span></button>
+  </section>
+
+  <!-- 2. Gift box -->
+  <section class="screen" data-index="1">
+    <p class="eyebrow">✦ There's Something For You ✦</p>
+    <h1 class="screen-title" style="font-size:clamp(1.7rem, 4vw, 2.4rem);">A Little Surprise</h1>
+    <button class="gift-wrap" id="giftBox" aria-label="Open your gift">
+      <span class="gift-glow"></span>
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <rect x="14" y="42" width="72" height="46" rx="3" fill="#e9cf8f" opacity="0.9"/>
+        <rect x="14" y="42" width="72" height="12" rx="2" fill="#d8b25c"/>
+        <rect x="44" y="42" width="12" height="46" fill="#c9963f"/>
+        <path d="M50 42 C30 20, 14 26, 22 40 C30 50, 45 46, 50 42 Z" fill="#d8b25c"/>
+        <path d="M50 42 C70 20, 86 26, 78 40 C70 50, 55 46, 50 42 Z" fill="#d8b25c"/>
+      </svg>
+    </button>
+    <p class="gift-hint">Click to open your surprise</p>
+  </section>
+
+  <!-- 3. Hero: Your Special Day -->
+  <section class="screen" data-index="2">
+    <div class="hero-frame">
+      <div class="side-photos left">
+        <div class="polaroid"><div class="frame">🖼️</div></div>
+        <div class="polaroid"><div class="frame">🖼️</div></div>
+      </div>
+      <div class="hero-center">
+        <p class="eyebrow">✦ For You ✦</p>
+        <h1 class="screen-title" style="font-size:clamp(1.8rem, 5vw, 2.8rem);">Your Special Day</h1>
+        <p class="screen-sub" style="font-size:0.95rem;">created with love, just for you</p>
+      </div>
+      <div class="side-photos right">
+        <div class="polaroid"><div class="frame">🖼️</div></div>
+        <div class="polaroid"><div class="frame">🖼️</div></div>
+      </div>
+    </div>
+    <button class="continue" data-next>Continue <span class="arrow">→</span></button>
+  </section>
+
+  <!-- 4. Letter -->
+  <section class="screen" data-index="3">
+    <div class="card">
+      <p class="eyebrow">A Letter For You</p>
+      <h2 class="screen-title" style="font-size:clamp(1.5rem, 3.5vw, 2.1rem);">Happy Birthday, Habiba</h2>
+      <div class="divider"></div>
+      <div class="letter-body">
+        <p>Things between us are not what they used to be, and our paths went in different directions — but that never changed the place you still hold in my heart.</p>
+        <p>I hope this year brings you everything you've been hoping for: good health, real peace, and a road that feels a little easier than the one before.</p>
+        <p>Thank you for being exactly who you are. Today is your day, so I hope you enjoy every bit of it.</p>
+      </div>
+      <p class="signature">— with genuine care</p>
+    </div>
+    <button class="continue" data-next>Continue <span class="arrow">→</span></button>
+  </section>
+
+  <!-- 5. Gallery -->
+  <section class="screen" data-index="4">
+    <p class="eyebrow">Moments Worth Keeping</p>
+    <h1 class="screen-title" style="font-size:clamp(1.6rem, 4vw, 2.4rem);">A Few Memories</h1>
+    <div class="gallery">
+      <div class="polaroid"><div class="frame">🖼️</div></div>
+      <div class="polaroid"><div class="frame">🖼️</div></div>
+      <div class="polaroid"><div class="frame">🖼️</div></div>
+      <div class="polaroid"><div class="frame">🖼️</div></div>
+      <div class="polaroid"><div class="frame">🖼️</div></div>
+      <div class="polaroid"><div class="frame">🖼️</div></div>
+    </div>
+    <button class="continue" data-next>Watch The Video <span class="arrow">→</span></button>
+  </section>
+
+  <!-- 6. Video -->
+  <section class="screen" data-index="5">
+    <p class="eyebrow">A Moment For You</p>
+    <h1 class="screen-title" style="font-size:clamp(1.6rem, 4vw, 2.2rem);">A Special Video Message</h1>
+    <div class="video-frame">
+      <div class="play">▶</div>
+      <p class="video-hint">Add your video here later</p>
+    </div>
+    <button class="continue" data-next>One More Thing <span class="arrow">→</span></button>
+  </section>
+
+  <!-- 7. Final -->
+  <section class="screen" data-index="6">
+    <p class="eyebrow">✦ With All My Heart ✦</p>
+    <h1 class="screen-title">With All My Heart</h1>
+    <div class="divider"></div>
+    <p class="screen-sub">Thank you for the memories we shared. Whatever tomorrow brings, I hope you always find reasons to smile.</p>
+    <p class="signature" style="margin-top:1rem;">With care, always 🤍</p>
+    <button class="replay" data-restart>↻ Replay From Start</button>
+  </section>
+
+</main>
+
+<div class="progress" id="progress"></div>
+
+
+<script>
+  const screens = Array.from(document.querySelectorAll('.screen'));
+  const progressEl = document.getElementById('progress');
+  let current = 0;
+
+  screens.forEach((_, i) => {
+    const dot = document.createElement('span');
+    if (i === 0) dot.classList.add('active');
+    progressEl.appendChild(dot);
+  });
+  const dots = Array.from(progressEl.children);
+
+  function goTo(index){
+    if (index < 0 || index >= screens.length) return;
+    const leaving = screens[current];
+    leaving.classList.remove('active');
+    dots[current].classList.remove('active');
+    current = index;
+    screens[current].classList.add('active');
+    dots[current].classList.add('active');
+    // reset any filled button on the screen we just left, so it replays next time
+    const filled = leaving.querySelector('.continue.filling');
+    if (filled) filled.classList.remove('filling');
+  }
+
+  document.querySelectorAll('.continue[data-next]').forEach(btn=>{
+    const fill = document.createElement('span');
+    fill.className = 'fill';
+    btn.prepend(fill);
+    btn.addEventListener('click', ()=>{
+      if (btn.classList.contains('filling')) return;
+      btn.classList.add('filling');
+      setTimeout(()=> goTo(current+1), 500);
+    });
+  });
+  document.querySelectorAll('[data-restart]').forEach(btn=>{
+    btn.addEventListener('click', ()=> goTo(0));
+  });
+
+  window.addEventListener('keydown', (e)=>{
+    if (e.key === 'ArrowRight') goTo(current+1);
+    if (e.key === 'ArrowLeft') goTo(current-1);
+  });
+
+  // gift box open interaction
+  const giftBox = document.getElementById('giftBox');
+  giftBox.addEventListener('click', ()=>{
+    if (giftBox.classList.contains('opened')) return;
+    giftBox.classList.add('opened');
+    setTimeout(()=> goTo(current+1), 550);
+  });
+
+  // twinkling starfield
+  const canvas = document.getElementById('stars');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function resize(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const count = Math.floor((canvas.width * canvas.height) / 9000);
+    stars = Array.from({length: count}, () => ({
+      x: Math.random()*canvas.width,
+      y: Math.random()*canvas.height,
+      r: Math.random()*1.3 + 0.3,
+      phase: Math.random()*Math.PI*2,
+      speed: Math.random()*0.015 + 0.005
+    }));
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  function draw(t){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    stars.forEach(s=>{
+      const alpha = reduceMotion ? 0.6 : 0.35 + 0.5*Math.abs(Math.sin(s.phase + t*s.speed));
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(243,233,220,${alpha})`;
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+      ctx.fill();
+    });
+    if (!reduceMotion) requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+</script>
+
+</body>
+</html>
