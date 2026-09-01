@@ -908,6 +908,11 @@
     bgm.volume = BGM_NORMAL;
     let audioStarted = false;
 
+    // Extra safety net: whenever real playback actually begins, force unmuted.
+    bgm.addEventListener('playing', () => {
+      bgm.muted = false;
+    });
+
     function fadeAudioTo(audio, target, duration = 500) {
       const start = audio.volume;
       const startTime = performance.now();
@@ -922,7 +927,13 @@
     function startBgmOnce() {
       if (audioStarted) return;
       audioStarted = true;
-      bgm.play().catch(() => { /* will retry on next interaction if blocked */ audioStarted = false; });
+      bgm.muted = false;
+      bgm.play().then(() => {
+        // Some browsers start playback but keep it internally silent until
+        // an explicit unmute — force it right after playback is confirmed.
+        bgm.muted = false;
+        bgm.volume = BGM_NORMAL;
+      }).catch(() => { /* will retry on next interaction if blocked */ audioStarted = false; });
     }
     // Browsers require a user gesture before audio can play with sound —
     // start it on the very first click or key press anywhere on the page.
